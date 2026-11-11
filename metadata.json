@@ -1,0 +1,6 @@
+{
+  "name": "Jihad Chat",
+  "description": "Fast, reliable messaging app with real-time chats, offline queues, and nearby peer-to-peer messaging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
