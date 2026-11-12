@@ -32,6 +32,16 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Visibility
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -68,6 +78,7 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.components.AvatarView
 import com.example.ui.navigation.AppScreen
 import com.example.ui.theme.JihadDivider
+import com.example.ui.theme.JihadGreenDark
 import com.example.ui.theme.JihadGreenMint
 import com.example.ui.theme.JihadGreenPrimary
 import com.example.ui.viewmodel.ChatViewModel
@@ -284,7 +295,9 @@ fun SettingsScreen(
     }
 
     val isDark by viewModel.isDarkTheme.collectAsState()
+    val context = LocalContext.current
     var showClearDataConfirm by remember { mutableStateOf(false) }
+    var showDownloadDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -397,6 +410,60 @@ fun SettingsScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Download APK for Mobile Phone
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDownloadDialog = true },
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = JihadGreenMint)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .background(JihadGreenPrimary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Download,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = if (lang == AppLanguage.BENGALI) "ফোনে APK ডাউনলোড করুন" else "Download APK for Mobile",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = JihadGreenDark
+                            )
+                            Text(
+                                text = if (lang == AppLanguage.BENGALI) "সরাসরি মোবাইলে ইনস্টল করার ফাইল ও লিংক" else "Direct file & link to install on mobile",
+                                fontSize = 12.sp,
+                                color = JihadGreenDark.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.Default.Android,
+                        contentDescription = null,
+                        tint = JihadGreenPrimary
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // Clear All Local Data
@@ -424,6 +491,118 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    if (showDownloadDialog) {
+        val apkUrl = "https://ais-pre-bu5ur5ucnniarqwywa5gdg-569567363979.asia-east1.run.app/Jihad_Chat.apk"
+        AlertDialog(
+            onDismissRequest = { showDownloadDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Download, contentDescription = null, tint = JihadGreenPrimary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (lang == AppLanguage.BENGALI) "ফোনে অ্যাপ ডাউনলোড করুন" else "Download App to Phone",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = if (lang == AppLanguage.BENGALI)
+                            "আপনার Realme বা অ্যান্ড্রয়েড ফোনে 'Jihad Chat' ইনস্টল করার জন্য নিচের অপশনগুলো ব্যবহার করুন:"
+                        else
+                            "Use the options below to download and install 'Jihad Chat' on your Android device:",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = JihadGreenMint),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = if (lang == AppLanguage.BENGALI) "ইনস্টল করার সহজ নিয়ম:" else "Installation Steps:",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = JihadGreenDark
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = if (lang == AppLanguage.BENGALI)
+                                    "১. 'ব্রাউজারে ডাউনলোড' চাপলে APK ডাউনলোড শুরু হবে।\n২. ডাউনলোড শেষে নোটিফিকেশন থেকে ফাইলে ট্যাপ করুন।\n৩. Settings থেকে 'Install unknown apps' অনুমতি দিন।\n৪. 'Install' চাপুন এবং সরাসরি ব্যবহার করুন।"
+                                else
+                                    "1. Tap 'Download in Browser' to get the APK.\n2. Tap the downloaded file in notification/files.\n3. Allow 'Install unknown apps' in Android settings.\n4. Tap 'Install' to start chatting!",
+                                fontSize = 12.sp,
+                                color = JihadGreenDark,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl))
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    viewModel.showFeedback("ব্রাউজার খুলতে সমস্যা হয়েছে")
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = JihadGreenPrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.OpenInBrowser, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                if (lang == AppLanguage.BENGALI) "ব্রাউজারে ডাউনলোড" else "Browser Download",
+                                fontSize = 11.sp,
+                                color = Color.White
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Jihad Chat APK", apkUrl)
+                                clipboard.setPrimaryClip(clip)
+                                viewModel.showFeedback(
+                                    if (lang == AppLanguage.BENGALI) "ডাউনলোড লিংক কপি করা হয়েছে!" else "Download link copied!"
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                if (lang == AppLanguage.BENGALI) "লিংক কপি" else "Copy Link",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDownloadDialog = false }) {
+                    Text(if (lang == AppLanguage.BENGALI) "ঠিক আছে" else "Close")
+                }
+            }
+        )
     }
 
     if (showClearDataConfirm) {
